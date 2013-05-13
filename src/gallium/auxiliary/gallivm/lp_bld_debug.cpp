@@ -206,7 +206,9 @@ lp_disassemble(const void* func)
    std::string Error;
    const Target *T = TargetRegistry::lookupTarget(Triple, Error);
 
-#if HAVE_LLVM >= 0x0300
+#if HAVE_LLVM >= 0x0304
+   OwningPtr<const MCAsmInfo> AsmInfo(T->createMCAsmInfo(*T->createMCRegInfo(Triple), Triple));
+#elif HAVE_LLVM >= 0x0300
    OwningPtr<const MCAsmInfo> AsmInfo(T->createMCAsmInfo(Triple));
 #else
    OwningPtr<const MCAsmInfo> AsmInfo(T->createAsmInfo(Triple));
