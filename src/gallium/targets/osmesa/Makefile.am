@@ -81,9 +81,14 @@ if BUILD_SHARED
 all-local: lib@OSMESA_LIB@.la
 	$(MKDIR_P) $(top_builddir)/$(LIB_DIR);
 	$(MKDIR_P) $(top_builddir)/$(LIB_DIR)/gallium;
-	ln -f .libs/lib@OSMESA_LIB@.so $(top_builddir)/$(LIB_DIR)/gallium/lib@OSMESA_LIB@.so;
-	ln -f .libs/lib@OSMESA_LIB@.so.@OSMESA_VERSION@ $(top_builddir)/$(LIB_DIR)/gallium/lib@OSMESA_LIB@.so.@OSMESA_VERSION@;
-	cp .libs/lib@OSMESA_LIB@.so.@OSMESA_VERSION@.0.0 $(top_builddir)/$(LIB_DIR)/gallium/
+	base=$(basename $<);					\
+	dlname=$$(grep dlname= .libs/$< | cut -d "'" -f 2);	\
+	ver=$$(grep current= .libs/$< | cut -d "=" -f 2);	\
+	ln -f .libs/$$dlname $(top_builddir)/$(LIB_DIR)/gallium/$$dlname; \
+	if [ ! -f $(top_builddir)/$(LIB_DIR)/gallium/$$base.so.$$ver ]; then \
+	  ln -sf $$dlname $(top_builddir)/$(LIB_DIR)/gallium/$$base.so.$$ver; \
+	fi;							\
+	ln -sf $$base.so.$$ver $(top_builddir)/$(LIB_DIR)/gallium/$$base.so
 endif
 
 # XXX fix-up?

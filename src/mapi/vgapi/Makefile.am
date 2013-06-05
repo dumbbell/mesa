@@ -56,6 +56,11 @@ CLEANFILES = $(BUILT_SOURCES)
 # a while by putting a link to the driver into /lib of the build tree.
 all-local: libOpenVG.la
 	$(MKDIR_P) $(top_builddir)/$(LIB_DIR);
-	ln -f .libs/libOpenVG.so $(top_builddir)/$(LIB_DIR)/libOpenVG.so
-	ln -f .libs/libOpenVG.so.1 $(top_builddir)/$(LIB_DIR)/libOpenVG.so.1
-	ln -f .libs/libOpenVG.so.1.0.0 $(top_builddir)/$(LIB_DIR)/libOpenVG.so.1.0.0
+	base=$(basename $<);					\
+	dlname=$$(grep dlname= .libs/$< | cut -d "'" -f 2);	\
+	ver=$$(grep current= .libs/$< | cut -d "=" -f 2);	\
+	ln -f .libs/$$dlname $(top_builddir)/$(LIB_DIR)/$$dlname; \
+	if [ ! -f $(top_builddir)/$(LIB_DIR)/$$base.so.$$ver ]; then \
+	  ln -sf $$dlname $(top_builddir)/$(LIB_DIR)/$$base.so.$$ver; \
+	fi;							\
+	ln -sf $$base.so.$$ver $(top_builddir)/$(LIB_DIR)/$$base.so
