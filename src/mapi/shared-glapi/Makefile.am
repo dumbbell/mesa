@@ -27,6 +27,11 @@ AM_CPPFLAGS =							\
 
 all-local: libglapi.la
 	$(MKDIR_P) $(top_builddir)/$(LIB_DIR)
-	ln -f .libs/libglapi.so.0.0.0 $(top_builddir)/$(LIB_DIR)/libglapi.so.0.0.0
-	ln -sf libglapi.so.0.0.0 $(top_builddir)/$(LIB_DIR)/libglapi.so.0
-	ln -sf libglapi.so.0 $(top_builddir)/$(LIB_DIR)/libglapi.so
+	base=$(basename $<);					\
+	dlname=$$(grep dlname= .libs/$< | cut -d "'" -f 2);	\
+	ver=$$(grep current= .libs/$< | cut -d "=" -f 2);	\
+	ln -f .libs/$$dlname $(top_builddir)/$(LIB_DIR)/$$dlname; \
+	if [ ! -f $(top_builddir)/$(LIB_DIR)/$$base.so.$$ver ]; then \
+	  ln -sf $$dlname $(top_builddir)/$(LIB_DIR)/$$base.so.$$ver; \
+	fi;							\
+	ln -sf $$base.so.$$ver $(top_builddir)/$(LIB_DIR)/$$base.so

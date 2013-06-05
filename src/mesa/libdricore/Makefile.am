@@ -72,8 +72,14 @@ lib_LTLIBRARIES = libdricore@VERSION@.la
 # a while by putting a link to the driver into /lib of the build tree.
 all-local: libdricore@VERSION@.la
 	$(MKDIR_P) $(top_builddir)/$(LIB_DIR);
-	ln -f .libs/libdricore@VERSION@.so.1.0.0 $(top_builddir)/$(LIB_DIR)/libdricore@VERSION@.so.1;
-	ln -sf libdricore@VERSION@.so.1 $(top_builddir)/$(LIB_DIR)/libdricore@VERSION@.so
+	base=$(basename $<);					\
+	dlname=$$(grep dlname= .libs/$< | cut -d "'" -f 2);	\
+	ver=$$(grep current= .libs/$< | cut -d "=" -f 2);	\
+	ln -f .libs/$$dlname $(top_builddir)/$(LIB_DIR)/$$dlname; \
+	if [ ! -f $(top_builddir)/$(LIB_DIR)/$$base.so.$$ver ]; then \
+	  ln -sf $$dlname $(top_builddir)/$(LIB_DIR)/$$base.so.$$ver; \
+	fi;							\
+	ln -sf $$base.so.$$ver $(top_builddir)/$(LIB_DIR)/$$base.so
 endif
 
 CLEANFILES = \

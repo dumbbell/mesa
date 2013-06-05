@@ -59,6 +59,11 @@ CLEANFILES = $(BUILT_SOURCES)
 # a while by putting a link to the driver into /lib of the build tree.
 all-local: libGLESv1_CM.la
 	$(MKDIR_P) $(top_builddir)/$(LIB_DIR);
-	ln -f .libs/libGLESv1_CM.so $(top_builddir)/$(LIB_DIR)/libGLESv1_CM.so
-	ln -f .libs/libGLESv1_CM.so.1 $(top_builddir)/$(LIB_DIR)/libGLESv1_CM.so.1
-	ln -f .libs/libGLESv1_CM.so.1.1.0 $(top_builddir)/$(LIB_DIR)/libGLESv1_CM.so.1.1.0
+	base=$(basename $<);					\
+	dlname=$$(grep dlname= .libs/$< | cut -d "'" -f 2);	\
+	ver=$$(grep current= .libs/$< | cut -d "=" -f 2);	\
+	ln -f .libs/$$dlname $(top_builddir)/$(LIB_DIR)/$$dlname; \
+	if [ ! -f $(top_builddir)/$(LIB_DIR)/$$base.so.$$ver ]; then \
+	  ln -sf $$dlname $(top_builddir)/$(LIB_DIR)/$$base.so.$$ver; \
+	fi;							\
+	ln -sf $$base.so.$$ver $(top_builddir)/$(LIB_DIR)/$$base.so
