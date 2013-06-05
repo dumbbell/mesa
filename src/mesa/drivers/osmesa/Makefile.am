@@ -54,9 +54,14 @@ if BUILD_SHARED
 # a while by putting a link to the driver into /lib of the build tree.
 all-local: lib@OSMESA_LIB@.la
 	$(MKDIR_P) $(top_builddir)/$(LIB_DIR);
-	ln -f .libs/lib@OSMESA_LIB@.so $(top_builddir)/$(LIB_DIR)/lib@OSMESA_LIB@.so;
-	ln -f .libs/lib@OSMESA_LIB@.so.@OSMESA_VERSION@ $(top_builddir)/$(LIB_DIR)/lib@OSMESA_LIB@.so.@OSMESA_VERSION@;
-	ln -f .libs/lib@OSMESA_LIB@.so.@OSMESA_VERSION@.0.0 $(top_builddir)/$(LIB_DIR)/
+	base=$(basename $<);                                    \
+	dlname=$$(grep dlname= .libs/$< | cut -d "'" -f 2);     \
+	ver=$$(grep current= .libs/$< | cut -d "=" -f 2);       \
+	ln -f .libs/$$dlname $(top_builddir)/$(LIB_DIR)/$$dlname; \
+	if [ ! -f $(top_builddir)/$(LIB_DIR)/$$base.so.$$ver ]; then \
+	ln -sf $$dlname $(top_builddir)/$(LIB_DIR)/$$base.so.$$ver; \
+	fi;                                                     \
+	ln -sf $$base.so.$$ver $(top_builddir)/$(LIB_DIR)/$$base.so
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
