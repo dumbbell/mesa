@@ -66,6 +66,12 @@ struct vmw_region
  */
 #define SVGA3D_SURFACE_HINT_SCANOUT (1 << 9)
 
+#if defined(__DragonFly__) || \
+    defined(__FreeBSD__) ||   \
+    defined(__NetBSD__) ||    \
+    defined(__OpenBSD__)
+#define	ERESTART EINTR
+#endif
 
 uint32_t
 vmw_region_size(struct vmw_region *region)
