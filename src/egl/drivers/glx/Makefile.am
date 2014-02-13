@@ -22,7 +22,7 @@
 AM_CFLAGS = \
 	-I$(top_srcdir)/include \
 	-I$(top_srcdir)/src/egl/main \
-	$(X11_CFLAGS) \
+	$(X11_INCLUDES) \
 	$(DEFINES)
 
 noinst_LTLIBRARIES = libegl_glx.la

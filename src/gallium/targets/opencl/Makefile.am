@@ -9,7 +9,7 @@ libOpenCL_la_LDFLAGS = \
 libOpenCL_la_LIBADD = \
 	$(top_builddir)/src/gallium/state_trackers/clover/libclover.la \
 	$(top_builddir)/src/gallium/auxiliary/libgallium.la \
-	$(GALLIUM_PIPE_LOADER_LIBS) $(LIBUDEV_LIBS) \
+	$(GALLIUM_PIPE_LOADER_LIBS) $(LIBUDEV_LIBS) $(LIBDEVQ_LIBS) \
 	-ldl \
 	-lclangCodeGen \
 	-lclangFrontendTool \

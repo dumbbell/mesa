@@ -61,6 +61,7 @@ egl_gallium_la_LIBADD = \
 	$(top_builddir)/src/egl/main/libEGL.la \
 	$(CLOCK_LIB) \
 	$(LIBUDEV_LIBS) \
+	$(LIBDEVQ_LIBS) \
 	$(DLOPEN_LIBS) \
 	$(PTHREAD_LIBS) \
 	-lm

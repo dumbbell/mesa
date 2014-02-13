@@ -1203,8 +1203,16 @@ fi
 if test "x$enable_gbm" = xyes; then
     SRC_DIRS="$SRC_DIRS gbm"
 
-    PKG_CHECK_MODULES([LIBUDEV], [libudev], [],
-                      AC_MSG_ERROR([gbm needs udev]))
+    case "$host_os" in
+    *freebsd*)
+        PKG_CHECK_MODULES([LIBDEVQ], [libdevq-1.0], [],
+                          AC_MSG_ERROR([gbm needs libdevq]))
+        ;;
+    *)
+        PKG_CHECK_MODULES([LIBUDEV], [libudev], [],
+                          AC_MSG_ERROR([gbm needs udev]))
+        ;;
+    esac
 
     if test "x$enable_dri" = xyes; then
         GBM_BACKEND_DIRS="$GBM_BACKEND_DIRS dri"
@@ -1213,7 +1221,14 @@ if test "x$enable_gbm" = xyes; then
         fi
     fi
 fi
-GBM_PC_REQ_PRIV="libudev"
+case "$host_os" in
+*freebsd*)
+    GBM_PC_REQ_PRIV="libdevq-1.0"
+    ;;
+*)
+    GBM_PC_REQ_PRIV="libudev"
+    ;;
+esac
 GBM_PC_LIB_PRIV="$DLOPEN_LIBS"
 AC_SUBST([GBM_PC_REQ_PRIV])
 AC_SUBST([GBM_PC_LIB_PRIV])
@@ -1231,10 +1246,20 @@ if test "x$enable_egl" = xyes; then
 
     if test "$enable_static" != yes; then
         # build egl_glx when libGL is built
-        PKG_CHECK_MODULES([LIBUDEV], [libudev > 150],
-                          [have_libudev=yes],[have_libudev=no])
+        case "$host_os" in
+        *freebsd*)
+            PKG_CHECK_MODULES([LIBDEVQ], [libdevq-1.0],
+                              [have_libdevq=yes],[have_libdevq=no])
+            ;;
+        *)
+            PKG_CHECK_MODULES([LIBUDEV], [libudev > 150],
+                              [have_libudev=yes],[have_libudev=no])
+            ;;
+        esac
         if test "$have_libudev" = yes; then
             DEFINES="$DEFINES -DHAVE_LIBUDEV"
+        elif test "$have_libdevq" = yes; then
+            DEFINES="$DEFINES -DHAVE_LIBDEVQ"
         fi
 
         if test "x$enable_dri" = xyes; then
@@ -1538,9 +1563,19 @@ for plat in $egl_platforms; do
 		;;
 	esac
 
-        case "$plat$have_libudev" in
-                waylandno|drmno)
-                    AC_MSG_ERROR([cannot build $plat platfrom without udev]) ;;
+        case "$host_os" in
+        *freebsd*)
+            case "$plat$have_libdevq" in
+                    waylandno|drmno)
+                        AC_MSG_ERROR([cannot build $plat platfrom without libdevq]) ;;
+            esac
+            ;;
+        *)
+            case "$plat$have_libudev" in
+                    waylandno|drmno)
+                        AC_MSG_ERROR([cannot build $plat platfrom without udev]) ;;
+            esac
+            ;;
         esac
 done
 
@@ -1684,8 +1719,6 @@ if test "x$enable_gallium_llvm" = xyes; then
                 CLANG_LIBDIR=${LLVM_LIBDIR}
             fi
             CLANG_RESOURCE_DIR=$CLANG_LIBDIR/clang/${LLVM_VERSION}
-            AC_CHECK_FILE("$CLANG_RESOURCE_DIR/include/stddef.h",,
-                AC_MSG_ERROR([Could not find clang internal header stddef.h in $CLANG_RESOURCE_DIR Use --with-clang-libdir to specify the correct path to the clang libraries.]))
         fi
     else
 	MESA_LLVM=0
@@ -1768,8 +1801,16 @@ gallium_require_llvm() {
 
 gallium_require_drm_loader() {
     if test "x$enable_gallium_loader" = xyes; then
-        PKG_CHECK_MODULES([LIBUDEV], [libudev], [],
-                          AC_MSG_ERROR([Gallium drm loader requires libudev]))
+        case "$host_os" in
+        *freebsd*)
+            PKG_CHECK_MODULES([LIBDEVQ], [libdevq-1.0], [],
+                              AC_MSG_ERROR([Gallium drm loader requires libdevq]))
+            ;;
+        *)
+            PKG_CHECK_MODULES([LIBUDEV], [libudev], [],
+                              AC_MSG_ERROR([Gallium drm loader requires libudev]))
+            ;;
+        esac
         if test "x$have_libdrm" != xyes; then
             AC_MSG_ERROR([Gallium drm loader requires libdrm >= $LIBDRM_REQUIRED])
         fi
@@ -1780,7 +1821,7 @@ gallium_require_drm_loader() {
 radeon_llvm_check() {
     LLVM_REQUIRED_VERSION_MAJOR="3"
     LLVM_REQUIRED_VERSION_MINOR="2"
-    if test "$LLVM_VERSION_INT" -ne "${LLVM_REQUIRED_VERSION_MAJOR}0${LLVM_REQUIRED_VERSION_MINOR}"; then
+    if test "$LLVM_VERSION_INT" -lt "${LLVM_REQUIRED_VERSION_MAJOR}0${LLVM_REQUIRED_VERSION_MINOR}"; then
         AC_MSG_ERROR([LLVM $LLVM_REQUIRED_VERSION_MAJOR.$LLVM_REQUIRED_VERSION_MINOR with R600 target enabled is required.
                      To use the r600/radeonsi LLVM backend, you need to fetch the LLVM source from:
                      git://people.freedesktop.org/~tstellar/llvm master

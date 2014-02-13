@@ -581,7 +581,7 @@ dri2_initialize(_EGLDriver *drv, _EGLDisplay *disp)
       return dri2_initialize_x11(drv, disp);
 #endif
 
-#ifdef HAVE_LIBUDEV
+#if defined(HAVE_LIBUDEV) || defined(HAVE_LIBDEVQ)
 #ifdef HAVE_DRM_PLATFORM
    case _EGL_PLATFORM_DRM:
       if (disp->Options.TestOnly)
