@@ -32,7 +32,11 @@
 
 #include <fcntl.h>
 #include <stdio.h>
+
+#if defined(HAVE_LIBUDEV)
 #include <libudev.h>
+#endif
+
 #include <xf86drm.h>
 
 #ifdef HAVE_PIPE_LOADER_XCB

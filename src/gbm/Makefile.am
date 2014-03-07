@@ -10,6 +10,7 @@ AM_CFLAGS = \
 	-I$(top_srcdir)/src/loader \
 	-I$(top_srcdir)/src/gbm/main \
 	$(LIBUDEV_CFLAGS) \
+	$(LIBDEVQ_CFLAGS) \
 	$(LIBKMS_CFLAGS) \
 	$(DLOPEN_CFLAGS) \
 	$(DEFINES)
@@ -24,6 +25,7 @@ libgbm_la_LDFLAGS = -version-info 1:0
 libgbm_la_LIBADD = \
 	$(top_builddir)/src/loader/libloader.la \
 	$(LIBUDEV_LIBS) \
+	$(LIBDEVQ_LIBS) \
 	$(LIBKMS_LIBS) \
 	$(DLOPEN_LIBS)
 

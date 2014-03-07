@@ -773,6 +773,8 @@ fi
 
 PKG_CHECK_MODULES([LIBUDEV], [libudev >= $LIBUDEV_REQUIRED],
                   have_libudev=yes, have_libudev=no)
+PKG_CHECK_MODULES([LIBDEVQ], [libdevq-1.0],
+                  have_libdevq=yes, have_libdevq=no)
 
 if test "x$enable_dri" = xyes; then
     # DRI must be shared, I think
@@ -830,8 +832,8 @@ xyesno)
         PKG_CHECK_MODULES([DRI2PROTO], [dri2proto >= $DRI2PROTO_REQUIRED])
         GL_PC_REQ_PRIV="$GL_PC_REQ_PRIV libdrm >= $LIBDRM_REQUIRED"
         if test x"$enable_dri3" = xyes; then
-            if test x"$have_libudev" != xyes; then
-              AC_MSG_ERROR([DRI3 requires libudev >= $LIBUDEV_REQUIRED])
+            if test x"$have_libudev" != xyes -a x"$have_libdevq" != xyes; then
+              AC_MSG_ERROR([DRI3 requires libudev >= $LIBUDEV_REQUIRED or libdevq])
             fi
             PKG_CHECK_MODULES([DRI3PROTO], [dri3proto >= $DRI3PROTO_REQUIRED])
             PKG_CHECK_MODULES([PRESENTPROTO], [presentproto >= $PRESENTPROTO_REQUIRED])
@@ -856,8 +858,8 @@ xyesno)
     X11_INCLUDES="$X11_INCLUDES $DRIGL_CFLAGS"
     GL_LIB_DEPS="$DRIGL_LIBS"
 
-    if test x"$enable_dri3$have_libudev" = xyesyes; then
-        X11_INCLUDES="$X11_INCLUDES $LIBUDEV_CFLAGS"
+    if test x"$enable_dri3$have_libudev" = xyesyes -o x"$enable_dri3$have_libdevq" = xyesyes; then
+        X11_INCLUDES="$X11_INCLUDES $LIBUDEV_CFLAGS $LIBDEVQ_CFLAGS"
         GL_LIB_DEPS="$GL_LIB_DEPS"
     fi
 
@@ -869,6 +871,9 @@ esac
 
 if test "$have_libudev" = yes; then
     DEFINES="$DEFINES -DHAVE_LIBUDEV"
+fi
+if test "$have_libdevq" = yes; then
+    DEFINES="$DEFINES -DHAVE_LIBDEVQ"
 fi
 
 # This is outside the case (above) so that it is invoked even for non-GLX
@@ -1178,8 +1183,8 @@ if test "x$enable_gbm" = xauto; then
     esac
 fi
 if test "x$enable_gbm" = xyes; then
-    if test x"$have_libudev" != xyes; then
-        AC_MSG_ERROR([gbm needs udev])
+    if test x"$have_libudev" != xyes -a x"$have_libdevq" != xyes; then
+        AC_MSG_ERROR([gbm needs udev or libdevq])
     fi
 
     if test "x$enable_dri" = xyes; then
@@ -1190,7 +1195,11 @@ if test "x$enable_gbm" = xyes; then
     fi
 fi
 AM_CONDITIONAL(HAVE_GBM, test "x$enable_gbm" = xyes)
-GBM_PC_REQ_PRIV="libudev"
+if test "x$have_libudev" = xyes; then
+    GBM_PC_REQ_PRIV="libudev"
+elif test "x$have_libdevq" = xyes; then
+    GBM_PC_REQ_PRIV="libdevq-1.0"
+fi
 GBM_PC_LIB_PRIV="$DLOPEN_LIBS"
 AC_SUBST([GBM_PC_REQ_PRIV])
 AC_SUBST([GBM_PC_LIB_PRIV])
@@ -1461,9 +1470,9 @@ for plat in $egl_platforms; do
 		;;
 	esac
 
-        case "$plat$have_libudev" in
-                waylandno|drmno)
-                    AC_MSG_ERROR([cannot build $plat platfrom without udev]) ;;
+        case "$plat$have_libudev$have_libdevq" in
+                waylandnono|drmnono)
+                    AC_MSG_ERROR([cannot build $plat platfrom without udev or libdevq]) ;;
         esac
 done
 
@@ -1702,8 +1711,11 @@ gallium_require_llvm() {
 
 gallium_require_drm_loader() {
     if test "x$enable_gallium_loader" = xyes; then
-        PKG_CHECK_MODULES([LIBUDEV], [libudev], [],
-                          AC_MSG_ERROR([Gallium drm loader requires libudev]))
+        PKG_CHECK_MODULES([LIBUDEV], [libudev],
+                          gallium_have_libudev=yes, gallium_have_libudev=yes)
+        if test x"$gallium_have_libudev" != xyes -a x"$have_libdevq" != xyes; then
+            AC_MSG_ERROR([Gallium drm loader requires libudev or libdevq])
+        fi
         if test "x$have_libdrm" != xyes; then
             AC_MSG_ERROR([Gallium drm loader requires libdrm >= $LIBDRM_REQUIRED])
         fi
