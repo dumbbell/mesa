@@ -27,7 +27,8 @@ libloader_la_CPPFLAGS = \
 	$(DEFINES) \
 	-I$(top_srcdir)/include \
 	$(VISIBILITY_CFLAGS) \
-	$(LIBUDEV_CFLAGS)
+	$(LIBUDEV_CFLAGS) \
+	$(LIBDEVQ_CFLAGS)
 
 if !HAVE_LIBDRM
 libloader_la_CPPFLAGS += \
