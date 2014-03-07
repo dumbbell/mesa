@@ -37,6 +37,7 @@ DRI2PROTO_REQUIRED=2.6
 DRI3PROTO_REQUIRED=1.0
 PRESENTPROTO_REQUIRED=1.0
 LIBUDEV_REQUIRED=151
+LIBDEVQ_REQUIRED=0.0.2
 GLPROTO_REQUIRED=1.4.14
 LIBOMXIL_BELLAGIO_REQUIRED=0.0
 VDPAU_REQUIRED=0.4.1
@@ -818,13 +819,23 @@ fi
 
 case "$host_os" in
 linux*)
-    need_libudev=yes ;;
+    need_libudev=yes
+    need_libdevq=no
+    ;;
+freebsd*)
+    need_libudev=no
+    need_libdevq=yes
+    ;;
 *)
-    need_libudev=no ;;
+    need_libudev=no
+    need_libdevq=no
+    ;;
 esac
 
 PKG_CHECK_MODULES([LIBUDEV], [libudev >= $LIBUDEV_REQUIRED],
                   have_libudev=yes, have_libudev=no)
+PKG_CHECK_MODULES([LIBDEVQ], [libdevq-1.0 >= $LIBDEVQ_REQUIRED],
+                  have_libdevq=yes, have_libdevq=no)
 
 if test "x$enable_dri" = xyes; then
     if test "$enable_static" = yes; then
@@ -912,6 +923,9 @@ esac
 
 if test "$have_libudev" = yes; then
     DEFINES="$DEFINES -DHAVE_LIBUDEV"
+fi
+if test "$have_libdevq" = yes; then
+    DEFINES="$DEFINES -DHAVE_LIBDEVQ"
 fi
 
 # This is outside the case (above) so that it is invoked even for non-GLX
@@ -1186,6 +1200,9 @@ if test "x$enable_gbm" = xyes; then
     if test "x$need_libudev$have_libudev" = xyesno; then
         AC_MSG_ERROR([gbm requires udev >= $LIBUDEV_REQUIRED])
     fi
+    if test "x$need_libdevq$have_libdevq" = xyesno; then
+        AC_MSG_ERROR([gbm requires libdevq >= $LIBDEVQ_REQUIRED])
+    fi
 
     if test "x$enable_dri" = xyes; then
         GBM_BACKEND_DIRS="$GBM_BACKEND_DIRS dri"
@@ -1204,6 +1221,8 @@ fi
 AM_CONDITIONAL(HAVE_GBM, test "x$enable_gbm" = xyes)
 if test "x$need_libudev" = xyes; then
     GBM_PC_REQ_PRIV="libudev >= $LIBUDEV_REQUIRED"
+elif test "x$need_libdevq" = xyes; then
+    GBM_PC_REQ_PRIV="libdevq >= $LIBDEVQ_REQUIRED"
 else
     GBM_PC_REQ_PRIV=""
 fi
@@ -1495,6 +1514,10 @@ for plat in $egl_platforms; do
                 waylandyesno|drmyesno)
                     AC_MSG_ERROR([cannot build $plat platform without udev >= $LIBUDEV_REQUIRED]) ;;
         esac
+        case "$plat$need_libdevq$have_libdevq" in
+                waylandyesno|drmyesno)
+                    AC_MSG_ERROR([cannot build $plat platform without libdevq >= $LIBDEVQ_REQUIRED]) ;;
+        esac
 done
 
 # libEGL wants to default to the first platform specified in
@@ -1762,6 +1785,9 @@ gallium_require_drm_loader() {
     if test "x$enable_gallium_loader" = xyes; then
         if test "x$need_libudev$have_libudev" = xyesno; then
             AC_MSG_ERROR([Gallium drm loader requires libudev >= $LIBUDEV_REQUIRED])
+        fi
+        if test "x$need_libdevq$have_libdevq" = xyesno; then
+            AC_MSG_ERROR([Gallium drm loader requires libdevq >= $LIBDEVQ_REQUIRED])
         fi
         if test "x$have_libdrm" != xyes; then
             AC_MSG_ERROR([Gallium drm loader requires libdrm >= $LIBDRM_REQUIRED])
