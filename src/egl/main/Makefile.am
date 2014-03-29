@@ -25,14 +25,17 @@ if HAVE_XF86VIDMODE
 EXTRA_DEFINES_XF86VIDMODE = -DXF86VIDMODE
 endif
 
-AM_CFLAGS = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/include/EGL \
 	-I$(top_srcdir)/src/gbm/main \
 	$(DEFINES) \
 	$(EGL_CFLAGS) \
 	-D_EGL_NATIVE_PLATFORM=$(EGL_NATIVE_PLATFORM) \
 	-D_EGL_DRIVER_SEARCH_DIR=\"$(EGL_DRIVER_INSTALL_DIR)\" \
 	-D_EGL_OS_UNIX=1
+
+AM_CFLAGS =
 
 lib_LTLIBRARIES = libEGL.la
 
